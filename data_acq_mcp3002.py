@@ -54,28 +54,41 @@ def read_json_config(file_path):
     output_file_path = os.path.join(raw_json["file_dir"], raw_json["file_name"])
     should_write_to_file = raw_json["should_write_to_file"]
     data_points = raw_json["data_points_to_average"]
-    return output_file_path, should_write_to_file, data_points
+    collection_pause = raw_json["data_points_to_collect"]
+    return output_file_path, should_write_to_file, data_points, collection_pause
 
-def main_loop(numb_data_pnts, output_file_obj = None):
+def main_loop(numb_data_pnts, pnts_till_pause, output_file_obj = None):
     if output_file_obj != None:
         output_file_obj.write("time (ms),value (arb)\n")
+    pnts_collected = 0
+    text_start = raw_input("start data collection? Y N \n>")
+    if text_start in ["n", 'N', 'No', 'no', 'NO', 'nO']:
+        return 0
     init_time = time.time()
     while True:
         time_step, value = timer(numb_data_pnts)
         print "time = {} value = {} ".format(time_step-init_time, value)
+        pnts_collected += 1
+        if pnts_collected >= pnts_till_pause and pnts_till_pause >= 0:
+            print "continue? Y N"
+            text = raw_input(">")
+            pnts_collected = 0
+            if text in ["n", "N", "No", "no", "NO", "nO"]:
+                break
         if output_file_obj != None:
             output_file_obj.write("{},{}\n".format(time_step-init_time, value))
+    return 0
 
 if __name__ == '__main__':
     print read(0,0)
     input_config = argv[1]
-    output_file_path, should_write_to_file, data_points = read_json_config(input_config)
+    output_file_path, should_write_to_file, data_points, collection_pause = read_json_config(input_config)
 
     if(should_write_to_file):
         with open(output_file_path, 'w') as output_file:
-            main_loop(data_points, output_file)
+            main_loop(data_points, collection_pause, output_file)
     else:
-        main_loop(data_points)
+        main_loop(data_points, collection_pause)
         
         
             

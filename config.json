@@ -2,5 +2,6 @@
     "file_dir": "",
     "file_name": "test.txt",
     "should_write_to_file": false,
-    "data_points_to_average": 5000
+    "data_points_to_average": 3000,
+    "data_points_to_collect": 100
 }
