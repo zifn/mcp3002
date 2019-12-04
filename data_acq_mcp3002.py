@@ -6,6 +6,7 @@ import spidev #import module that allows for gpio to talk to mcp3002
 import time
 import json
 import os
+from copy import deepcopy
 from sys import argv
 
 def read(adc_channel, spi_channel):
@@ -14,38 +15,24 @@ def read(adc_channel, spi_channel):
     conn.max_speed_hz = 1200000 #1.2 MHz
     cmd = [1,(2 + adc_channel) << 6, 0]
     reply = conn.xfer2(cmd)
+   # print "reply from read = {}".format(reply)
+
     value = reply[1] & 31
     value = value << 6
     value = value + (reply[2] >> 2)
-    value2 = ((reply[1] & 31) << 6) + (reply[2] >> 2)
     conn.close()
-    return value, value2
+    return value
 
-def timer(numb_data_points):
-    data_points = numb_data_points #1000 Kilo pts
-    spi_channel = 0
-    adc_channel = 0
-    cmd = [1,(2 + adc_channel) << 6, 0] #start bit(1), SGL(1)/Pseudo-Diff(0), channel select bit, MSBF bit
-    conn = spidev.SpiDev()
-    conn.open(0, spi_channel)
-    conn.max_speed_hz = 12000000 #12 MHz
-
-    reply = []
-    append = reply.append
-    length = range(data_points)
-    time_1 = time.time()
-    for i in length:
-        append(conn.xfer2(cmd))
-        time_2 = time.time()
-    delta_t_per_point = (time_2 - time_1)/data_points
-    
-    ave_value = 0
+def timer(data_points):
+    values = []
     for i in range(data_points):
-        temp = reply[i]
-        value = ((temp[1] & 31) << 6) + (temp[2] >> 2)
-        ave_value += value
+       # temp_reply = deepcopy(conn.xfer2(cmd)) #bug in xfer2 it modifies the given output resulting in zeros
+       # print "raw reply in timer = {}".format(temp_reply)
+        values.append(read(0,0))
+    time_2 = time.time()
+
+    ave_value = sum(values)
     ave_value /= data_points
-    conn.close()
     return(time_2, ave_value)
 
 def read_json_config(file_path):
@@ -61,7 +48,7 @@ def main_loop(numb_data_pnts, pnts_till_pause, output_file_obj = None):
     if output_file_obj != None:
         output_file_obj.write("time (ms),value (arb)\n")
     pnts_collected = 0
-    text_start = raw_input("start data collection? Y N \n>")
+    text_start = 'yes' #raw_input("start data collection? Y N \n>")
     if text_start in ["n", 'N', 'No', 'no', 'NO', 'nO']:
         return 0
     init_time = time.time()
@@ -89,8 +76,5 @@ if __name__ == '__main__':
             main_loop(data_points, collection_pause, output_file)
     else:
         main_loop(data_points, collection_pause)
-        
-        
-            
-        
+
 
