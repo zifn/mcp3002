@@ -52,8 +52,8 @@ def main_loop(numb_data_pnts, pnts_till_pause, wait_time, output_file_obj = None
     if output_file_obj != None:
         output_file_obj.write("time (ms),value (arb)\n")
     pnts_collected = 0
-    print "start data collection? Y N"
-    text_start = stdin.readline()
+  #  print "start data collection? Y N"
+    text_start = 'yes' # stdin.readline()
     if text_start[0] in ["n", 'N']:
         return 0
     init_time = time.time()
@@ -62,8 +62,8 @@ def main_loop(numb_data_pnts, pnts_till_pause, wait_time, output_file_obj = None
         print "time = {} value = {} ".format(time_step-init_time, value)
         pnts_collected += 1
         if pnts_collected >= pnts_till_pause and pnts_till_pause >= 0:
-            print "continue? Y N"
-            text = stdin.readline()
+            #print "continue? Y N"
+            text = 'yes'  # stdin.readline()
             pnts_collected = 0
             if text[0] in ["n", "N"]:
                 break
